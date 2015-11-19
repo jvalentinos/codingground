@@ -1,0 +1,31 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. FACTORIAL.
+
+ENVIRONMENT DIVISION.
+
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 numero   pic 9(4) value 5.
+01 fact     pic 9(8) value 0.
+01 num      pic 9(4).
+01 iter     pic 9    value 0.
+PROCEDURE DIVISION.
+Begin.
+    MOVE numero TO num.
+    
+    PERFORM OneFactorial.
+    STOP RUN.
+
+OneFactorial.    
+    ADD 1 TO iter
+    
+    IF numero = 0
+        MOVE 1 TO fact
+    ELSE
+        SUBTRACT 1 FROM numero
+        PERFORM oneFactorial
+        MULTIPLY num BY fact
+    END-IF
+    
+    DISPLAY iter '! = ' fact.
+
