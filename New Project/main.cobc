@@ -1,0 +1,10 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. HELLO-WORLD.
+PROCEDURE DIVISION.
+Begin.
+    PERFORM DisplayGreeting 10 TIMES.
+    STOP RUN.
+
+DisplayGreeting.    
+    DISPLAY 'CodingGround...Compile and Execute COBOL OnLine.'.
+
