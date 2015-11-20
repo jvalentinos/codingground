@@ -1,0 +1,475 @@
+       identification division.
+       program-id. ConvertTo.
+       
+       environment division.
+       configuration section.
+
+       data division.
+       working-storage section.
+       77  importe         pic 9(9)    value zeroes.
+       77  numString       pic X(9)    value spaces.
+       77  numAux          pic X(9)    value spaces.
+       77  Rpt-Line        pic X(129)  value spaces.
+       77  lineAux         pic A(20)   value spaces.
+       77  numberOfChars   pic 99  value zeros.
+       77  idx         pic 99      value zeros.
+       77  idxAux      pic 99      value zeros.
+       77  idxPosIni   pic 99      value zeros.
+       77  oneChar     pic X       value space.
+       77  numCociente pic 999     value zeros.
+       77  numResiduo  pic 999     value zeros.
+       01  NumChar.
+           02 elemento  pic X(1) occurs 9  value space.
+       01  RegNumLetter.
+           02 Unities  pic X(15)   value spaces.
+           02 Decens   pic X(15)   value spaces.
+           02 Centens  pic X(15)   value spaces.
+           02 UMillar  pic X(20)   value spaces.
+           02 DMillar  pic X(20)   value spaces.
+           02 CMillar  pic X(20)   value spaces.
+           02 UMillon  pic X(25)   value spaces.
+           02 DMillon  pic X(25)   value spaces.
+           02 CMillon  pic X(25)   value spaces.
+
+       77  unidades    pic 9       value zero.
+       77  decenas     pic 99      value zeros.
+       77  centenas    pic 999     value zeros.
+       77  units       pic A(10).
+       77  tens        pic A(15).
+       77  hundreds    pic A(15).
+
+       procedure division.
+           perform 00-Presentacion
+           perform 10-Set-Importe
+           perform 20-Procesa-ImporteToCharacters
+           if ( numberOfChars equal 0 ) then
+               move 'CERO' to Unities
+           else
+               perform 200-GetCurrencyToLetters    
+           end-if
+
+           perform 220-ImprimeResultado
+           
+           accept oneChar
+
+           STOP RUN.
+
+       220-ImprimeResultado.
+           evaluate numberOfChars
+               when 9
+                   string
+                       CMillon DMillon UMillon CMillar DMillar UMillar Centens                         Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string     
+               when 8
+                   string
+                       DMillon UMillon CMillar DMillar UMillar Centens Decens                          Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 7
+                   string
+                       UMillon CMillar DMillar UMillar Centens Decens Unities 
+                       'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 6
+                   string
+                       CMillar DMillar UMillar Centens Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 5
+                   string
+                       DMillar UMillar Centens Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 4
+                   string
+                       UMillar Centens Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 3
+                   string
+                       Centens Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 2
+                   string
+                       Decens Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 1
+                   string
+                       Unities 'M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+               when 0
+                   string
+                       'CERO M.N'
+                       delimited by size
+                       into Rpt-Line
+                   end-string                    
+           end-evaluate
+     
+           display Rpt-Line
+           display RegNumLetter.
+       
+       10-Set-Importe.
+           display "Introduce el Importe $" line 5 position 5
+           accept numString.
+
+       20-Procesa-ImporteToCharacters.
+           
+           move spaces to NumChar
+           move 0 to numberOfChars
+           move length of numString to idx
+           perform until ( idx < 1 ) 
+               move numString(idx:1) to oneChar
+               if ( oneChar is numeric ) then
+                   move oneChar to elemento( idx ) 
+                   if (numberOfChars = 0) then
+                       move idx to numberOfChars
+                   end-if
+               end-if
+               subtract 1 from idx
+           end-perform
+           compute idxPosIni = (length of numString - numberOfChars) + 1
+
+
+           display "Importe  $" numString
+           display "NumChar  $" numChar
+           display "numberOfChars: " numberOfChars
+           display "Posicion Inicial: " idxPosIni
+           move numberOfChars to idxPosIni
+           move 1 to idx.           
+           
+       200-GetCurrencyToLetters.
+
+           perform 210-TranslateCurrency
+               until ( idxPosIni < 1 ).
+               
+       210-TranslateCurrency.
+           move zeroes to unidades, decenas, centenas
+                      
+           evaluate idxPosIni
+      
+               when 1
+                   move numChar(idx:1) to unidades
+                   move zeroes to decenas
+                   move space to units
+                   
+                   if (numberOfChars = 1)
+                       perform 100-Unidades
+                   else
+                       move numChar(idx - 1:2) to decenas
+                       if (unidades > 0) then
+                           if (decenas < 10 or decenas > 19) then
+                               perform 100-Unidades
+                           end-if
+                       end-if
+                    end-if
+              
+                    move units to Unities
+      
+               when 2
+                   move space to tens
+                   move numChar(idx:2) to decenas
+                   if (decenas >= 10)
+                       perform 110-Decenas
+                       if tens equal 'VEINTI' then
+                           string
+                               tens
+                               delimited by size
+                               into Decens
+                           end-string
+                       else
+                           move tens to Decens
+                       end-if
+                   end-if
+      
+               when 3
+                   move space to hundreds
+                   move numChar(idx:3) to centenas
+                   
+                   if (centenas >= 100)
+                       perform 130-Centenas
+                       move hundreds to Centens
+                   end-if
+      
+               when 4
+                   move spaces to units
+                   move numChar(idx:1) to unidades
+                   
+                   if ( unidades <> 0 ) then
+                       if (numberOfChars > 4) then
+                           move numChar(idx - 1:1) to decenas
+                       end-if
+      
+                       if ((decenas <> 1) and 
+                           (unidades > 0) ) then
+                           perform 100-Unidades
+          
+                           string
+                               units " MIL "
+                               delimited by size
+                               into UMillar
+                           end-string
+                        end-if
+                   end-if
+      
+               when 5  
+                   move spaces to tens
+                   move numChar(idx:2) to decenas
+                   perform 110-Decenas
+
+                   if (decenas >= 10) then
+                   
+                       divide 10 into decenas giving numCociente
+                           remainder numResiduo
+                       
+                       if ( ((decenas >= 10) and (decenas < 20)) or
+                             (numResiduo = 0) ) then
+                          string
+                               tens ' MIL' space
+                               delimited by size
+                               into DMillar
+                          end-string
+                       else
+                           move tens to DMillar
+                       end-if
+
+                   end-if
+      
+               when 6
+                   move spaces to hundreds
+                   move numChar(idx:3) to centenas
+                   perform 130-Centenas
+                   
+                   if (centenas >= 100) then
+                   
+                       divide 100 into centenas giving numCociente
+                           remainder numResiduo
+                           
+                       if (numResiduo = zero) then
+                           string
+                               hundreds ' MIL' space
+                               delimited by size
+                               into CMillar
+                           end-string
+                       else
+                           move hundreds to CMillar
+                       end-if
+                   end-if
+      
+               when 7
+                   move numChar(idx:1) to unidades
+                   move zeroes to decenas
+                   move spaces to lineAux
+                   move spaces to UMillon
+                   move spaces to units
+                   
+                   if (unidades not equal zero) then
+                       
+                       if (numberOfChars > 7) then
+
+                           move numChar(idx:2) to decenas
+                       end-if
+
+                       if ((decenas < 10) or (decenas > 19)) then
+                           perform 100-Unidades
+                           if ((unidades equal 1)   and 
+                               (numberOfChars = 7)) then
+                               move ' MILLON ' to lineAux
+                               move ' UN ' to units
+                           else
+                               move ' MILLONES ' to lineAux
+                           end-if
+                       
+                           string
+                               units lineAux
+                               delimited by size
+                               into UMillon
+                           end-string
+                       end-if
+                   end-if
+
+               when 8
+                   move spaces to DMillon
+                   move spaces to lineAux
+                   move spaces to tens
+                   
+
+                   move numChar(idx:2) to decenas
+                   if (decenas >= 10) then
+                       perform 110-Decenas
+                       
+                       divide 10 into decenas giving numCociente
+                           remainder numResiduo
+                       
+                       if ( ((decenas > 10) and (decenas < 20)) or
+                             (numResiduo equal zero) ) then
+                             move ' MILLONES ' to lineAux
+                       end-if
+                       
+                       string
+                           tens lineAux
+                           delimited by size
+                           into DMillon
+                       end-string                       
+                   end-if
+
+               when 9
+               
+                   move numChar(idx + 2:3) to centenas
+                   move spaces to hundreds
+                   move spaces to CMillon
+                   
+                   perform 130-Centenas
+                   
+                   if (centenas >= 100) then
+                   
+                       divide 100 into centenas giving numCociente
+                           remainder numResiduo
+                           
+                       if (numResiduo = zero) then
+                           string
+                               hundreds ' MILLONES '
+                               delimited by size
+                               into CMillon
+                           end-string
+                       else
+                           move hundreds to CMillon
+                       end-if
+                   end-if               
+               when other
+                   string
+                       "El importe $" space numChar space "es al mayor
+      -                 al maximo permitido para traducir."
+                       delimited by size
+                       into Rpt-Line
+                   end-string
+           end-evaluate
+           
+           subtract 1 from idxPosIni
+           add 1 to idx. 
+       
+       100-Unidades.
+           move spaces to units
+           evaluate unidades
+               when 0
+                   move "CERO " to units
+               when 1
+                   move "UNO " to units
+               when 2
+                   move "DOS " to units
+               when 3
+                   move "TRES " to units
+               when 4
+                   move "CUATRO " to units
+               when 5
+                   move "CINCO" to units
+               when 6
+                   move "SEIS " to units
+               when 7
+                   move "SIETE " to units
+               when 8
+                   move "OCHO " to units
+               when 9
+                   move "NUEVE " to units
+           end-evaluate.
+       
+       110-Decenas.
+           move spaces to tens
+           evaluate decenas
+               when 10
+                   move "DIEZ " to tens
+               when 11
+                   move "ONCE " to tens
+               when 12
+                   move "DOCE " to tens
+               when 13
+                   move "TRECE " to tens
+               when 14
+                   move "CATORCE " to tens
+               when 15
+                   move "QUINCE " to tens
+               when 16
+                   move "DIECISEIS " to tens
+               when 17
+                   move "DIECISIETE " to tens
+               when 18
+                   move "DIECIOCHO " to tens
+               when 19
+                   move "DIECINUEVE " to tens
+               when 20
+                   move "VEINTE " to tens
+               when 21 THRU 29
+                   move "VEINTI" to tens
+               when 30
+                   move "TREINTA " to tens
+               when 31 thru 39
+                   move "TREINTA Y " to tens
+               when 40
+                   move "CUARENTA " to tens
+               when 41 thru 49
+                   move "CUARENTA Y " to tens
+               when 50
+                   move "CINCUENTA " to tens
+               when 51 thru 59
+                   move "CINCUENTA Y " to tens
+               when 60
+                   move "SESENTA " to tens
+               when 61 thru 69
+                   move "SESENTA Y " to tens
+               when 70
+                   move "SETENTA " to tens
+               when 71 thru 79
+                   move "SETENTA Y " to tens
+               when 80
+                   move "OCHENTA " to tens
+               when 81 thru 89
+                   move "OCHENTA Y " to tens
+               when 90
+                   move "NOVENTA " to tens
+               when 91 thru 99
+                   move "NOVENTA Y " to tens
+           end-evaluate.
+
+       130-Centenas.
+           move spaces to hundreds
+           evaluate centenas
+               when 100
+                   move "CIEN " to hundreds
+               when 101 thru 199
+                   move "CIENTO " to hundreds
+               when 200 thru 299
+                   move "DOSCIENTOS " to hundreds
+               when 300 thru 399
+                   move "TRESCIENTOS " to hundreds
+               when 400 thru 499
+                   move "CUATROCIENTOS " to hundreds
+               when 500 thru 599
+                   move "QUINIENTOS " to hundreds
+               when 600 thru 699
+                   move "SEISCIENTOS " to hundreds
+               when 700 thru 799
+                   move "SETECIENTOS " to hundreds
+               when 800 thru 899
+                   move "OCHOCIENTOS " to hundreds
+               when 900 thru 999
+                   move "NOVECIENTOS " to hundreds
+               end-evaluate.
+
+       00-Presentacion.    
+           display "Chapter 6: Handling Strings" line 2 position 20.
+           display "Conversion de un Importe a Letras"                  
+              line 3 position 20.
+           
