@@ -1,0 +1,113 @@
+IDENTIFICATION DIVISION.
+PROGRAM-ID. SumaDeTablas.
+data division.
+working-storage section.
+01  TablaA.
+   02  ElementoA   occurs 3 times.
+       03  TEA     occurs 3 times  pic 99.
+01  TablaB.
+   02  ElementoB   occurs 3 times.
+       03  TEB     occurs 3 times pic 99.
+01  T-Suma.
+   02  ElementoS    occurs  3 times.
+       03  TES    occurs 3 times pic 999.
+01  r-line.
+   02  Campo-1 pic 999.
+   02  Item-1  pic x value space.
+   02  Campo-2 pic 999.
+   02  Item-2  pic x value space.
+   02  Campo-3 pic 999.    
+77  item    pic 999 value 0.   
+77  rows    pic 9.
+77  cols    pic 9.
+77  aKey    pic x.
+procedure division.
+   DISPLAY 'TABLAS EN COBOL'.       
+   display "Introduce la Tabla A:"
+   MOVE "A" to aKey
+   perform 10-Introduce-Datos
+   display ""
+   display "Introduce la Tabla B:"
+   move "B" to aKey
+   perform 10-Introduce-Datos
+   perform 20-Suma-Tablas
+   display "*************************"
+   display "Tabla A"
+   move "A" to aKey
+   perform 30-Imprime-Tabla
+   display "*************************"
+   display "Tabla B"
+   move "B" to aKey
+   perform 30-Imprime-Tabla
+   display "*************************"
+   display "Matriz SUMA"
+   move SPACE to aKey
+   perform 30-Imprime-Tabla
+           
+   accept aKey
+           
+   STOP RUN.
+           
+10-Introduce-Datos.
+   move 1 to rows
+   perform until rows > 3
+       move 1 to cols
+               
+       perform until cols > 3
+           if (akey = "A")
+               display "ElementoA (" rows "," cols "): "
+               accept TEA(rows, cols)
+           else
+               display "ElementoB (" rows "," cols "): "
+               accept TEB(rows, cols)
+           end-if
+           add 1 to cols
+       end-perform
+               
+       add 1 to rows
+   end-perform.
+           
+20-Suma-Tablas.
+   move 1 to rows
+   perform until rows > 3
+       move 1 to cols
+               
+       perform until cols > 3
+           compute TES(rows, cols) = TEA(rows, cols) + TEB(rows, cols)
+           add 1 to cols
+       end-perform
+               
+       add 1 to rows
+    end-perform.
+           
+30-Imprime-Tabla.
+   move 1 to rows
+       
+   perform until rows > 3
+       move 1 to cols
+               
+       perform until cols > 3
+           evaluate akey
+               when "A"
+                   move TEA(rows, cols) to item
+               when "B"
+                   move TEB(rows, cols) to item
+               when other
+                   move TES(rows, cols) to item
+           end-evaluate
+                   
+           evaluate cols
+               when 1
+                   move item to Campo-1
+               when 2
+                   move item to Campo-2
+               when 3
+                   move item to Campo-3
+           end-evaluate
+                   
+           add 1 to cols
+       end-perform
+               
+       display r-line
+       add 1 to rows
+   end-perform.        
